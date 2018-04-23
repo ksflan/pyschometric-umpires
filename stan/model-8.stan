@@ -73,7 +73,7 @@ transformed parameters {
     alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
-    x0[u] = mu_x0 + sigma_x0 * x0_tilde[u];
+    x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
     y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
     scale_exp[u] = exp(mu_scale + sigma_scale * scale_tilde[u]);
   }
@@ -92,7 +92,8 @@ model {
   mu_scale ~ normal(1,1);
   scale_tilde ~ normal(0,1);
   
-  x0_tilde ~ normal(0,1);
+  for(u in 1:U)
+    x0_tilde[u] ~ normal(0,1);
   y0_tilde ~ normal(0,1);
   
   r_tilde ~ normal(0,1);
