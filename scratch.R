@@ -53,3 +53,7 @@ model6 <- stan(file = "stan/model-6.stan",
                iter = 2000,
                chains = 2)
 
+model7 <- stan(file = "stan/model-7.stan",
+               data = data,
+               iter = 2000,
+               chains = 2)

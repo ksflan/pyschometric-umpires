@@ -1,4 +1,5 @@
-// Model 4 plus the scale factor
+// Model 6 plus hierarchical strike zone center parameters
+
 
 
 data {
@@ -10,6 +11,9 @@ data {
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
 }
 parameters {
+  
+  // strike zone dimension parameters
+  
   real mu_alpha;
   real<lower=0> sigma_alpha;
   
@@ -19,14 +23,26 @@ parameters {
   real alpha_tilde[U];
   real beta_tilde[U];
   
+  // minkowski parameters
+  
   real mu_r;
   real<lower=0> sigma_r;
   real r_tilde[U];
   
-  real scale;
+  // strike zone center parameters
   
-  real x0;
-  real y0;
+  real mu_scale;
+  real<lower=0> sigma_scale;
+  
+  real scale_tilde[U];
+  
+  real mu_x0;
+  real<lower=0> sigma_x0;
+  real mu_y0;
+  real<lower=0> sigma_y0;
+  
+  real x0_tilde[U];
+  real y0_tilde[U];
 }
 transformed parameters {
   real alpha[U];
@@ -34,14 +50,20 @@ transformed parameters {
   
   real r_exp[U];
   
+  real x0[U];
+  real y0[U];
+  
   real<lower=0> scale_exp;
   
-  scale_exp = exp(scale);
+  // scale_exp = exp(scale);
   
   for (u in 1:U) {
     alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
+    x0[u] = mu_x0 + sigma_x0 * x0_tilde[u];
+    y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
+    scale_exp[u] = exp(mu_scale + sigma_scale * scale_tilde[u]);
   }
 }
 model {
@@ -50,12 +72,16 @@ model {
   mu_beta ~ normal(0,10);
   mu_alpha ~ normal(0,1);
   
-  x0 ~ normal(0,1);
-  y0 ~ normal(2.5,1);
+  mu_x0 ~ normal(0,1);
+  mu_y0 ~ normal(2.5,1);
   
   mu_r ~ normal(0,10);
   
-  scale ~ normal(0,5);
+  mu_scale ~ normal(1,1);
+  scale_tilde ~ normal(0,1);
+  
+  x0_tilde ~ normal(0,1);
+  y0_tilde ~ normal(0,1);
   
   r_tilde ~ normal(0,1);
   
@@ -63,7 +89,7 @@ model {
   beta_tilde ~ normal(0,1);
   
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0) / scale_exp) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]]);
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]]);
   
   call ~ bernoulli_logit(theta);
 }
