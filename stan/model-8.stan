@@ -1,10 +1,10 @@
 // Model 7 plus different x0 parameters for batter-handedness
 
 // Parameters:
-// hierarchical alpha
+// hierarchical alpha (with handedness)
 // hierarchical beta
 // hierarchical Minkowski
-// hierarchical scale
+// hierarchical scale (with handedness)
 // hierarchical x0 (with handedness)
 // hierarchical y0
 
@@ -26,13 +26,13 @@ parameters {
   
   // strike zone dimension parameters
   
-  real mu_alpha;
-  real<lower=0> sigma_alpha;
+  vector[2] mu_alpha;
+  vector<lower=0>[2] sigma_alpha;
   
   real mu_beta;
   real<lower=0> sigma_beta;
   
-  real alpha_tilde[U];
+  vector[2] alpha_tilde[U];
   real beta_tilde[U];
   
   // minkowski parameters
@@ -57,7 +57,7 @@ parameters {
   real y0_tilde[U];
 }
 transformed parameters {
-  real alpha[U];
+  vector[2] alpha[U];
   real beta[U];
   
   real r_exp[U];
@@ -65,17 +65,17 @@ transformed parameters {
   vector[2] x0[U]; // 2, for the number of batter handednesses (R and L)
   real y0[U];
   
-  real<lower=0> scale_exp[U];
+  vector<lower=0>[2] scale_exp[U];
   
   // scale_exp = exp(scale);
   
   for (u in 1:U) {
-    alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
+    alpha[u] = mu_alpha + to_row_vector(sigma_alpha) * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
     x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
     y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
-    scale_exp[u] = exp(mu_scale + sigma_scale * scale_tilde[u]);
+    scale_exp[u] = exp(mu_scale + to_row_vector(sigma_scale) * scale_tilde[u]);
   }
 }
 model {
@@ -90,7 +90,8 @@ model {
   mu_r ~ normal(0,10);
   
   mu_scale ~ normal(1,1);
-  scale_tilde ~ normal(0,1);
+  for(u in 1:U)
+    scale_tilde[u] ~ normal(0,1);
   
   for(u in 1:U)
     x0_tilde[u] ~ normal(0,1);
@@ -98,11 +99,12 @@ model {
   
   r_tilde ~ normal(0,1);
   
-  alpha_tilde ~ normal(0,1);
+  for(u in 1:U)
+    alpha_tilde[u] ~ normal(0,1);
   beta_tilde ~ normal(0,1);
   
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]]);
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n]],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]],batter_stance[n]]);
   
   call ~ bernoulli_logit(theta);
 }
