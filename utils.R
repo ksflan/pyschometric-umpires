@@ -1,4 +1,4 @@
-library(tidyverse)
+try(library(tidyverse))
 library(rstan)
 library(RPostgreSQL)
 library(dplyr)
