@@ -43,10 +43,10 @@ parameters {
   
   // strike zone center parameters
   
-  real mu_scale;
-  real<lower=0> sigma_scale;
+  vector[2] mu_scale;
+  vector<lower=0>[2] sigma_scale;
   
-  real scale_tilde[U];
+  vector[2] scale_tilde[U];
   
   vector[2] mu_x0; // 2, for the number of batter handednesses (R and L)
   vector<lower=0>[2] sigma_x0; // 2, for the number of batter handednesses (R and L)
@@ -75,7 +75,8 @@ transformed parameters {
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
     x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
     y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
-    scale_exp[u] = exp(mu_scale + to_row_vector(sigma_scale) * scale_tilde[u]);
+    for(i in 1:2)
+      scale_exp[u][i] = exp(mu_scale[i] + sigma_scale[i] * scale_tilde[u][i]); // cannot use vector multiplication because of the exp() call
   }
 }
 model {
@@ -104,7 +105,7 @@ model {
   beta_tilde ~ normal(0,1);
   
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n]],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]],batter_stance[n]]);
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n],batter_stance[n]]);
   
   call ~ bernoulli_logit(theta);
 }
