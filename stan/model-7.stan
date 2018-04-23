@@ -53,7 +53,7 @@ transformed parameters {
   real x0[U];
   real y0[U];
   
-  real<lower=0> scale_exp;
+  real<lower=0> scale_exp[U];
   
   // scale_exp = exp(scale);
   
@@ -89,7 +89,7 @@ model {
   beta_tilde ~ normal(0,1);
   
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]]);
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n]]);
   
   call ~ bernoulli_logit(theta);
 }
