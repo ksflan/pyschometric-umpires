@@ -1,3 +1,5 @@
+// Model 1 plus fitted r
+
 data {
   int<lower=1> N; // num obs
   int<lower=1> U; // num umpires
@@ -16,12 +18,18 @@ parameters {
   real alpha_tilde[U];
   real beta_tilde[U];
   
+  real r;
+  
   real x0;
   real y0;
 }
 transformed parameters {
   real alpha[U];
   real beta[U];
+  
+  real r_exp;
+  
+  r_exp = exp(r);
   
   for (u in 1:U) {
     alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
@@ -37,11 +45,13 @@ model {
   x0 ~ normal(0, 1);
   y0 ~ normal(2.5, 1);
   
+  r ~ normal(0,5);
+  
   alpha_tilde ~ normal(0, 1);
   beta_tilde ~ normal(0, 1);
   
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0) ^ 2.0 + fabs(y[n] - y0) ^ 2.0) ^ (1.0 / 2) - alpha[umpire_index[n]]);
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0) ^ r_exp + fabs(y[n] - y0) ^ r_exp) ^ (1.0 / r_exp) - alpha[umpire_index[n]]);
   
   call ~ bernoulli_logit(theta);
 }
