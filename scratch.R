@@ -20,6 +20,7 @@ data <- list(
   umpire_index = as.numeric(factor(pre_data$umpire_id)),
   x = pre_data$px,
   y = pre_data$pz,
+  batter_stance = ifelse(pre_data$stand == "R", 1, 2),
   call = pre_data$strike
 )
 
@@ -54,6 +55,11 @@ model6 <- stan(file = "stan/model-6.stan",
                chains = 2)
 
 model7 <- stan(file = "stan/model-7.stan",
+               data = data,
+               iter = 2000,
+               chains = 2)
+
+model8 <- stan(file = "stan/model-8.stan",
                data = data,
                iter = 2000,
                chains = 2)
