@@ -106,16 +106,19 @@ for(i in 1:dim(pars$alpha)[2]) {
 }
 plot_data <- all_alpha %>%
   group_by(umpire, period) %>%
-  summarise(q25 = quantile(value, 0.25),
+  summarise(q10 = quantile(value, 0.10),
+            q25 = quantile(value, 0.25),
             q50 = quantile(value, 0.50),
-            q75 = quantile(value, 0.75))
+            q75 = quantile(value, 0.75),
+            q90 = quantile(value, 0.90))
 
 plot_data %>%
   ggplot(aes(period, q50, color = as.factor(umpire))) +
   geom_point() +
-  geom_errorbar(aes(ymax = q75, ymin = q25)) +
+  geom_errorbar(aes(ymax = q90, ymin = q10)) +
   geom_line() +
-  facet_wrap(~umpire)
+  facet_wrap(~umpire) +
+  theme(legend.position = "none")
 
 
 
