@@ -10,16 +10,17 @@ umpires <- ump_data %>%
   count(umpire_id) %>%
   arrange(desc(n))
 
-umpire_list <- umpires$umpire_id[1:50]
+umpire_list <- umpires$umpire_id[1:20]
 
 pre_data <- ump_data %>%
-  mutate(test = original_date - min(original_date),
-         period = (as.numeric(original_date - min(original_date)) %/% 50) + 1) %>%
+  mutate(#test = original_date - min(original_date),
+    #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 130) + 1) %>%
   filter(umpire_id %in% umpire_list,
          period <= 6000) %>%
   group_by(umpire_id, period) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 500) %>%
+  filter(row_num <= 100) %>%
   ungroup()
 
 data <- list(
@@ -79,6 +80,14 @@ model9 <- stan(file = "stan/model-9.stan",
                iter = 2000,
                chains = 2)
 
+model10 <- stan(file = "stan/model-10.stan",
+               data = data,
+               iter = 2000,
+               chains = 2,
+               control = list(
+                 max_treedepth = 20
+               ))
+
 
 
 
@@ -95,13 +104,13 @@ model9 <- stan(file = "stan/model-9.stan",
 pars <- rstan::extract(model9)
 # alpha_p <- pars$alpha
 all_alpha <- NULL
-for(i in 1:dim(pars$alpha)[2]) {
-  alpha_temp <- pars$alpha[,i,] %>%
+for(i in 1:dim(pars$alpha_tilde)[2]) {
+  alpha_temp <- pars$alpha_tilde[,i,] %>%
     as.data.frame() %>%
     gather(period, value) %>%
     mutate(period = as.integer(gsub("V", "", period)),
            umpire = levels(factor(pre_data$umpire_id))[i],
-           parameter = "alpha")
+           parameter = "alpha_tilde")
   all_alpha <- rbind(all_alpha, alpha_temp)
 }
 plot_data <- all_alpha %>%
@@ -113,6 +122,7 @@ plot_data <- all_alpha %>%
             q90 = quantile(value, 0.90))
 
 plot_data %>%
+  # filter(period != 7) %>%
   ggplot(aes(period, q50, color = as.factor(umpire))) +
   geom_point() +
   geom_errorbar(aes(ymax = q90, ymin = q10)) +
