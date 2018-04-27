@@ -13,15 +13,17 @@ umpires <- ump_data %>%
 umpire_list <- umpires$umpire_id[1:20]
 
 pre_data <- ump_data %>%
-  mutate(#test = original_date - min(original_date),
+  mutate(
     #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
-         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 130) + 1) %>%
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
   filter(umpire_id %in% umpire_list,
-         period <= 6000) %>%
+         period <= 6000,
+         year(original_date) %in% 2014:2015) %>%
   group_by(umpire_id, period) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 100) %>%
-  ungroup()
+  filter(row_num <= 1000) %>%
+  ungroup() #%>%
+  # filter(period == 3)
 
 data <- list(
   N = nrow(pre_data),
@@ -101,11 +103,11 @@ model10 <- stan(file = "stan/model-10.stan",
 
 # Manipulate samples
 
-pars <- rstan::extract(model9)
+pars <- rstan::extract(model10)
 # alpha_p <- pars$alpha
 all_alpha <- NULL
-for(i in 1:dim(pars$alpha_tilde)[2]) {
-  alpha_temp <- pars$alpha_tilde[,i,] %>%
+for(i in 1:dim(pars$r_exp)[2]) {
+  alpha_temp <- pars$r_exp[,i,] %>%
     as.data.frame() %>%
     gather(period, value) %>%
     mutate(period = as.integer(gsub("V", "", period)),
