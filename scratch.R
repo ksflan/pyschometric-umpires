@@ -133,8 +133,8 @@ plot_data %>%
   theme(legend.position = "none")
 
 # Fitting Model 4 for 2013-2015 separately by year in order to compare to the DLM version (Model 10)
-model4_list <- NULL
-for(i in 1:3) {
+# model4_list <- NULL
+# for(i in 1:3) {
   temp_data <- pre_data %>%
     filter(period == i)
   data <- list(
@@ -148,11 +148,11 @@ for(i in 1:3) {
     period = temp_data$period,
     call = temp_data$strike
   )
-  model4_list[i] <- stan(file = "stan/model-4.stan",
-                         data = data,
-                         iter = 2000,
-                         chains = 2)
-}
+  model4_3 <- stan(file = "stan/model-4.stan",
+                   data = data,
+                   iter = 2000,
+                   chains = 2)
+# }
 
 
 
