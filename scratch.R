@@ -5,6 +5,7 @@ source("utils.R")
 set.seed(4321)
 
 ump_data <- fread("data/umpire-data-2014-2015.csv")
+ump_data2 <- fread("data/twenty-umpires.csv")
 
 umpires <- ump_data2 %>%
   count(umpire_id) %>%
@@ -14,14 +15,17 @@ umpire_list <- umpires$umpire_id[1:20]
 
 pre_data <- ump_data2 %>%
   filter(year(original_date) %in% 2013:2015) %>%
+  # group_by(umpire_id) %>%
+  # mutate(period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
   mutate(test = as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365,
-    #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
-         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
+         #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1
+  ) %>%
   filter(umpire_id %in% umpire_list,
          period <= 6000) %>%
   group_by(umpire_id, period) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 100) %>%
+  filter(row_num <= 50) %>%
   ungroup() #%>%
   # filter(period == 3)
 
@@ -29,9 +33,11 @@ data <- list(
   N = nrow(pre_data),
   U = length(unique(pre_data$umpire_id)),
   T = max(pre_data$period),
+  # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
   umpire_index = as.numeric(factor(pre_data$umpire_id)),
   x = pre_data$px,
   y = pre_data$pz,
+  s = (pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n,
   batter_stance = ifelse(pre_data$stand == "R", 1, 2),
   period = pre_data$period,
   call = pre_data$strike
@@ -90,6 +96,14 @@ model10 <- stan(file = "stan/model-10.stan",
                  max_treedepth = 20
                ))
 
+model11 <- stan(file = "stan/model-11.stan",
+                data = data,
+                iter = 2000,
+                chains = 2,
+                control = list(
+                  max_treedepth = 20
+                ))
+
 
 
 
@@ -103,7 +117,7 @@ model10 <- stan(file = "stan/model-10.stan",
 
 # Manipulate samples
 
-pars <- rstan::extract(model10)
+pars <- rstan::extract(model_list[[4]])
 # alpha_p <- pars$alpha
 all_alpha <- NULL
 for(i in 1:dim(pars$r_exp)[2]) {
@@ -133,8 +147,8 @@ plot_data %>%
   theme(legend.position = "none")
 
 # Fitting Model 4 for 2013-2015 separately by year in order to compare to the DLM version (Model 10)
-# model4_list <- NULL
-# for(i in 1:3) {
+model_list <- NULL
+for(i in 2) {
   temp_data <- pre_data %>%
     filter(period == i)
   data <- list(
@@ -148,12 +162,42 @@ plot_data %>%
     period = temp_data$period,
     call = temp_data$strike
   )
-  model4_3 <- stan(file = "stan/model-4.stan",
+  model_temp <- stan(file = "stan/model-8.stan",
                    data = data,
                    iter = 2000,
                    chains = 2)
-# }
+  model_list <- append(model_list,
+                       model_temp)
+}
 
+
+# Non-DLM version
+
+pars <- rstan::extract(model_list[[9]])
+# alpha_p <- pars$alpha
+all_alpha <- NULL
+for(i in 1:dim(pars$alpha)[2]) {
+  alpha_temp <- pars$alpha[,i] %>%
+    as.data.frame() %>%
+    gather(period, value) %>%
+    mutate(#period = as.integer(gsub("V", "", period)),
+           umpire = levels(factor(pre_data$umpire_id))[i],
+           parameter = "alpha_tilde")
+  all_alpha <- rbind(all_alpha, alpha_temp)
+}
+plot_data <- all_alpha %>%
+  group_by(umpire) %>%
+  summarise(q10 = quantile(value, 0.10),
+            q25 = quantile(value, 0.25),
+            q50 = quantile(value, 0.50),
+            q75 = quantile(value, 0.75),
+            q90 = quantile(value, 0.90))
+
+plot_data %>%
+  ggplot(aes(as.character(umpire), q50)) +
+  geom_point() +
+  geom_errorbar(aes(ymax = q90, ymin = q10)) +
+  coord_flip()
 
 
 

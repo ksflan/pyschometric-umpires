@@ -59,11 +59,12 @@ model {
     r_tilde[u,1] ~ normal(0,1);
   }
   
-  mu_r ~ normal(0,10);
+  mu_r[1] ~ normal(0,10);
   
   phi ~ normal(0.25,0.01);
   
   for(t in 2:T) {
+    mu_r[t] ~ normal(mu_r[t-1],0.25);
     for(u in 1:U) {
       alpha_tilde[u,t] ~ normal(alpha_tilde[u,t-1],phi[1]);
       beta_tilde[u,t] ~ normal(beta_tilde[u,t-1],phi[2]);
