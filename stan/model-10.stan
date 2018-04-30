@@ -12,19 +12,19 @@ data {
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
 }
 parameters {
-  real mu_alpha;
-  real<lower=0> sigma_alpha;
+  real mu_alpha[T];
+  real<lower=0> sigma_alpha[T];
   
-  real mu_beta;
-  real<lower=0> sigma_beta;
+  real mu_beta[T];
+  real<lower=0> sigma_beta[T];
   
   real alpha_tilde[U,T];
   real beta_tilde[U,T];
   
   real<lower=0> phi[3]; // first component is transition for alpha, second for beta, third for r_tilde
   
-  real mu_r;
-  real<lower=0> sigma_r;
+  real mu_r[T];
+  real<lower=0> sigma_r[T];
   real r_tilde[U,T];
   
   real x0;
@@ -38,9 +38,9 @@ transformed parameters {
   
   for(u in 1:U) {
     for (t in 1:T) {
-      alpha[u,t] = mu_alpha + sigma_alpha * alpha_tilde[u,t];
-      beta[u,t] = mu_beta + sigma_beta * beta_tilde[u,t];
-      r_exp[u,t] = exp(mu_r + sigma_r * r_tilde[u,t]);
+      alpha[u,t] = mu_alpha[t] + sigma_alpha[t] * alpha_tilde[u,t];
+      beta[u,t] = mu_beta[t] + sigma_beta[t] * beta_tilde[u,t];
+      r_exp[u,t] = exp(mu_r[t] + sigma_r[t] * r_tilde[u,t]);
     }
   }
 }
