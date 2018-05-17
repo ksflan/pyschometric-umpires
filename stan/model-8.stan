@@ -19,20 +19,20 @@ data {
   int<lower=1,upper=U> umpire_index[N];
   vector[N] x; // x-coord.
   vector[N] y; // y-coord.
-  int<lower=1,upper=2> batter_stance[N]; // 1 for right-handed, 2 for left-handed
+  int<lower=1,upper=4> batter_stance[N]; // 1 for right-handed, 2 for left-handed
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
 }
 parameters {
   
   // strike zone dimension parameters
   
-  vector[2] mu_alpha;
-  vector<lower=0>[2] sigma_alpha;
+  vector[4] mu_alpha;
+  vector<lower=0>[4] sigma_alpha;
   
   real mu_beta;
   real<lower=0> sigma_beta;
   
-  vector[2] alpha_tilde[U];
+  vector[4] alpha_tilde[U];
   real beta_tilde[U];
   
   // minkowski parameters
@@ -49,7 +49,7 @@ parameters {
   vector[4] scale_tilde[U];
   
   vector[4] mu_x0; // 2, for the number of batter handednesses (R and L) // or 4 for the number of distinct platoons
-  vector<lower=0>[2] sigma_x0; // 2, for the number of batter handednesses (R and L)
+  vector<lower=0>[4] sigma_x0; // 2, for the number of batter handednesses (R and L)
   real mu_y0;
   real<lower=0> sigma_y0;
   
@@ -96,7 +96,7 @@ model {
   mu_r ~ normal(0,10);
   
   mu_scale ~ normal(1,1);
-  for(u in 1:U)
+  for(u in 1:U) // does it matter whether this is a univariate normal or multivariate, or if the sampling statement is separate for each platoon parameter?
     scale_tilde[u] ~ normal(0,1);
   
   for(u in 1:U)
