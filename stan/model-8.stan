@@ -82,10 +82,10 @@ transformed parameters {
 model {
   real theta[N];
   
-  sigma_beta ~ normal(2,0.0001);
-  sigma_alpha ~ normal(2,0.0001);
-  sigma_scale ~ normal(2,0.0001);
-  sigma_r ~ normal(2,0.0001);
+  // sigma_beta ~ normal(2,0.0001);
+  // sigma_alpha ~ normal(2,0.0001);
+  // sigma_scale ~ normal(2,0.0001);
+  // sigma_r ~ normal(2,0.0001);
   
   mu_beta ~ normal(0,10);
   mu_alpha ~ normal(0,1);
