@@ -43,29 +43,29 @@ parameters {
   
   // strike zone center parameters
   
-  vector[2] mu_scale;
-  vector<lower=0>[2] sigma_scale;
+  vector[4] mu_scale;
+  vector<lower=0>[4] sigma_scale;
   
-  vector[2] scale_tilde[U];
+  vector[4] scale_tilde[U];
   
-  vector[2] mu_x0; // 2, for the number of batter handednesses (R and L)
+  vector[4] mu_x0; // 2, for the number of batter handednesses (R and L) // or 4 for the number of distinct platoons
   vector<lower=0>[2] sigma_x0; // 2, for the number of batter handednesses (R and L)
   real mu_y0;
   real<lower=0> sigma_y0;
   
-  vector[2] x0_tilde[U]; // 2, for the number of batter handednesses (R and L)
+  vector[4] x0_tilde[U]; // 2, for the number of batter handednesses (R and L)
   real y0_tilde[U];
 }
 transformed parameters {
-  vector[2] alpha[U];
+  vector[4] alpha[U];
   real beta[U];
   
   real r_exp[U];
   
-  vector[2] x0[U]; // 2, for the number of batter handednesses (R and L)
+  vector[4] x0[U]; // 2, for the number of batter handednesses (R and L)
   real y0[U];
   
-  vector<lower=0>[2] scale_exp[U];
+  vector<lower=0>[4] scale_exp[U];
   
   // scale_exp = exp(scale);
   
@@ -75,12 +75,17 @@ transformed parameters {
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
     x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
     y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
-    for(i in 1:2)
+    for(i in 1:4)
       scale_exp[u][i] = exp(mu_scale[i] + sigma_scale[i] * scale_tilde[u][i]); // cannot use vector multiplication because of the exp() call
   }
 }
 model {
   real theta[N];
+  
+  sigma_beta ~ normal(2,0.0001);
+  sigma_alpha ~ normal(2,0.0001);
+  sigma_scale ~ normal(2,0.0001);
+  sigma_r ~ normal(2,0.0001);
   
   mu_beta ~ normal(0,10);
   mu_alpha ~ normal(0,1);
