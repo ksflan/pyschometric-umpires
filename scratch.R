@@ -28,14 +28,18 @@ pre_data <- ump_data2 %>%
   group_by(umpire_id, period) %>%
   mutate(row_num = row_number(),
          platoon = case_when(
-           pre_data$stand == "R" && pre_data$p_throws == "R" ~ 1,
-           pre_data$stand == "R" && pre_data$p_throws == "L" ~ 2,
-           pre_data$stand == "L" && pre_data$p_throws == "R" ~ 3,
-           pre_data$stand == "L" && pre_data$p_throws == "L" ~ 4
+           stand == "R" && p_throws == "R" ~ 1,
+           stand == "R" && p_throws == "L" ~ 2,
+           stand == "L" && p_throws == "R" ~ 3,
+           stand == "L" && p_throws == "L" ~ 4
          )) %>%
-  filter(row_num <= 50000) %>%
+  filter(row_num <= 100) %>%
   ungroup() #%>%
   # filter(period == 3)
+
+predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
+                            y = seq(0, 6, 0.2),
+                            platoon = 1:4)
 
 data <- list(
   N = nrow(pre_data),
@@ -48,7 +52,11 @@ data <- list(
   s = (pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n,
   batter_stance = pre_data$platoon,
   period = pre_data$period,
-  call = pre_data$strike
+  call = pre_data$strike,
+  predict_N = nrow(predict_grid),
+  predict_x = predict_grid$x,
+  predict_y = predict_grid$y,
+  predict_platoon = predict_grid$platoon
 )
 
 model1 <- stan(file = "stan/model-1.stan",
@@ -222,4 +230,21 @@ plot_data_com %>%
   geom_line() +
   geom_errorbar(aes(ymax = q90, ymin = q10)) +
   theme(legend.position = "none")
+
+
+
+
+
+
+####
+pars <- rstan::extract(model8)
+
+pred <- apply(pars$predict_theta, FUN = mean, MARGIN = 2)
+predict_grid$pred <- pred
+
+predict_grid %>%
+  ggplot(aes(x, y, z = pred)) +
+  geom_contour() +
+  facet_wrap(~platoon) +
+  coord_equal()
 

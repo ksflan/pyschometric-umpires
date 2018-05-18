@@ -15,12 +15,17 @@
 
 data {
   int<lower=1> N; // num obs
+  int<lower=1> predict_N; // number of points to predict
   int<lower=1> U; // num umpires
   int<lower=1,upper=U> umpire_index[N];
   vector[N] x; // x-coord.
   vector[N] y; // y-coord.
   int<lower=1,upper=4> batter_stance[N]; // 1 for right-handed, 2 for left-handed
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
+  
+  real predict_x[predict_N];
+  real predict_y[predict_N];
+  int<lower=1,upper=4> predict_platoon[predict_N];
 }
 parameters {
   
@@ -114,9 +119,15 @@ model {
   
   call ~ bernoulli_logit(theta);
 }
-// generated quantities {
-//   add log-likelihood calculation
-// }
+generated quantities {
+  real predict_theta[predict_N];
+  
+  for(n in 1:predict_N) {
+    predict_theta[n] = inv_logit(
+      mu_beta * ((fabs(predict_x[n] - mu_x0[predict_platoon[n]]) ^ exp(mu_r) + (fabs(predict_y[n] - mu_y0) / exp(mu_scale[predict_platoon[n]])) ^ exp(mu_r)) ^ (1.0 / exp(mu_r)) - mu_alpha[predict_platoon[n]])
+    );
+  }
+}
 
 
 
