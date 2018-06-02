@@ -33,7 +33,7 @@ pre_data <- ump_data2 %>%
            stand == "L" && p_throws == "R" ~ 3,
            stand == "L" && p_throws == "L" ~ 4
          )) %>%
-  filter(row_num <= 100) %>%
+  filter(row_num <= 200) %>%
   ungroup() #%>%
   # filter(period == 3)
 
@@ -245,6 +245,15 @@ predict_grid$pred <- pred
 predict_grid %>%
   ggplot(aes(x, y, z = pred)) +
   geom_contour() +
-  facet_wrap(~platoon) +
+  facet_wrap(~platoon, nrow = 1) +
+  geom_segment(aes(x = -17/24, xend = -17/24, y = 1.6, yend = 3.4)) +
+  geom_segment(aes(x = -17/24, xend = 17/24, y = 1.6, yend = 1.6)) +
+  geom_segment(aes(x = 17/24, xend = 17/24, y = 1.6, yend = 3.4)) +
+  geom_segment(aes(x = -17/24, xend = 17/24, y = 3.4, yend = 3.4)) +
   coord_equal()
+
+
+pred_actual <- pars
+
+
 

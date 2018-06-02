@@ -72,6 +72,8 @@ transformed parameters {
   
   vector<lower=0>[4] scale_exp[U];
   
+  real theta[N];
+  
   // scale_exp = exp(scale);
   
   for (u in 1:U) {
@@ -83,9 +85,12 @@ transformed parameters {
     for(i in 1:4)
       scale_exp[u][i] = exp(mu_scale[i] + sigma_scale[i] * scale_tilde[u][i]); // cannot use vector multiplication because of the exp() call
   }
+  
+  for(n in 1:N)
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n],batter_stance[n]]);
 }
 model {
-  real theta[N];
+  
   
   // sigma_beta ~ normal(2,0.0001);
   // sigma_alpha ~ normal(2,0.0001);
@@ -114,8 +119,7 @@ model {
     alpha_tilde[u] ~ normal(0,1);
   beta_tilde ~ normal(0,1);
   
-  for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n],batter_stance[n]]);
+  
   
   call ~ bernoulli_logit(theta);
 }
