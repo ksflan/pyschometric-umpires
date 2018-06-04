@@ -21,21 +21,23 @@ pre_data <- ump_data2 %>%
   # mutate(period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
   mutate(test = as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365,
          #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
-         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1,
+         platoon = paste0(stand, "-", p_throws)
   ) %>%
   filter(umpire_id %in% umpire_list,
          period <= 6000) %>%
   group_by(umpire_id, period) %>%
-  mutate(row_num = row_number(),
-         platoon = case_when(
-           stand == "R" && p_throws == "R" ~ 1,
-           stand == "R" && p_throws == "L" ~ 2,
-           stand == "L" && p_throws == "R" ~ 3,
-           stand == "L" && p_throws == "L" ~ 4
-         )) %>%
-  filter(row_num <= 200) %>%
+  mutate(row_num = row_number()) %>%
+  filter(row_num <= 400) %>%
   ungroup() #%>%
   # filter(period == 3)
+
+# platoon = case_when(
+#   pre_data$stand == "R" && pre_data$p_throws == "R" ~ 1,
+#   pre_data$stand == "R" && pre_data$p_throws == "L" ~ 2,
+#   pre_data$stand == "L" && pre_data$p_throws == "R" ~ 3,
+#   pre_data$stand == "L" && pre_data$p_throws == "L" ~ 4
+# )
 
 predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
@@ -50,7 +52,7 @@ data <- list(
   x = pre_data$px,
   y = pre_data$pz,
   s = (pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n,
-  batter_stance = pre_data$platoon,
+  batter_stance = as.numeric(factor(pre_data$platoon)),
   period = pre_data$period,
   call = pre_data$strike,
   predict_N = nrow(predict_grid),
