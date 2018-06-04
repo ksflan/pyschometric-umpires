@@ -25,7 +25,8 @@ pre_data <- ump_data2 %>%
          platoon = paste0(stand, "-", p_throws)
   ) %>%
   filter(umpire_id %in% umpire_list,
-         period <= 6000) %>%
+         period <= 6000,
+         pitch_type == "FF") %>%
   group_by(umpire_id, period) %>%
   mutate(row_num = row_number()) %>%
   filter(row_num <= 400) %>%
@@ -247,7 +248,7 @@ predict_grid$pred <- pred
 predict_grid %>%
   ggplot(aes(x, y, z = pred)) +
   geom_contour() +
-  facet_wrap(~platoon, nrow = 1) +
+  facet_wrap(~platoon, nrow = 2) +
   geom_segment(aes(x = -17/24, xend = -17/24, y = 1.6, yend = 3.4)) +
   geom_segment(aes(x = -17/24, xend = 17/24, y = 1.6, yend = 1.6)) +
   geom_segment(aes(x = 17/24, xend = 17/24, y = 1.6, yend = 3.4)) +
@@ -255,7 +256,83 @@ predict_grid %>%
   coord_equal()
 
 
-pred_actual <- pars
+pred_actual <- apply(pars$theta, FUN = mean, MARGIN = 2)
+post_data <- pre_data
+post_data$pred <- pred_actual
+
+hist(post_data$strike - (1 / (1 + exp(-post_data$pred))))
+plot(post_data$px, post_data$strike - (1 / (1 + exp(-post_data$pred))))
+
+post_data %>%
+  ggplot(aes(px, pz, z = strike - (1 / (1 + exp(-pred))))) +
+  # geom_density2d(lev) +
+  stat_density2d(aes(color = ..level..)) +
+  facet_wrap(~platoon)
+
+
+
+
+
+
+###### Set up for remote machine
+
+pre_data <- ump_data2 %>%
+  filter(year(original_date) %in% 2010:2015,
+         month(original_date) >= 4,
+         month(original_date) <= 9) %>%
+  # group_by(umpire_id) %>%
+  # mutate(period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
+  mutate(test = as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365,
+         #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1,
+         platoon = paste0(stand, "-", p_throws)
+  ) %>%
+  filter(umpire_id %in% umpire_list,
+         period <= 6000) %>%
+  group_by(umpire_id, period) %>%
+  mutate(row_num = row_number()) %>%
+  filter(row_num <= 9999999) %>%
+  ungroup() #%>%
+# filter(period == 3)
+
+pre_data2010 <- pre_data %>% filter(year(original_date) == 2010)
+model8_2010 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2010,
+                    iter = 4000,
+                    chains = 4)
+
+pre_data2011 <- pre_data %>% filter(year(original_date) == 2011)
+model8_2011 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2011,
+                    iter = 4000,
+                    chains = 4)
+
+pre_data2012 <- pre_data %>% filter(year(original_date) == 2012)
+model8_2012 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2012,
+                    iter = 4000,
+                    chains = 4)
+
+pre_data2013 <- pre_data %>% filter(year(original_date) == 2013)
+model8_2013 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2013,
+                    iter = 4000,
+                    chains = 4)
+
+pre_data2014 <- pre_data %>% filter(year(original_date) == 2014)
+model8_2014 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2014,
+                    iter = 4000,
+                    chains = 4)
+
+pre_data2015 <- pre_data %>% filter(year(original_date) == 2015)
+model8_2015 <- stan(file = "stan/model-8.stan",
+                    data = pre_data2015,
+                    iter = 4000,
+                    chains = 4)
+
+
+
 
 
 
