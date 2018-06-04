@@ -295,39 +295,57 @@ pre_data <- ump_data2 %>%
   ungroup() #%>%
 # filter(period == 3)
 
+data <- list(
+  N = nrow(pre_data),
+  U = length(unique(pre_data$umpire_id)),
+  T = max(pre_data$period),
+  # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
+  umpire_index = as.numeric(factor(pre_data$umpire_id)),
+  x = pre_data$px,
+  y = pre_data$pz,
+  s = (pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n,
+  batter_stance = as.numeric(factor(pre_data$platoon)),
+  period = pre_data$period,
+  call = pre_data$strike,
+  predict_N = nrow(predict_grid),
+  predict_x = predict_grid$x,
+  predict_y = predict_grid$y,
+  predict_platoon = predict_grid$platoon
+)
+
 pre_data2010 <- pre_data %>% filter(year(original_date) == 2010)
 model8_2010 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2010,
+                    data = data_2010,
                     iter = 4000,
                     chains = 4)
 
 pre_data2011 <- pre_data %>% filter(year(original_date) == 2011)
 model8_2011 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2011,
+                    data = data_2011,
                     iter = 4000,
                     chains = 4)
 
 pre_data2012 <- pre_data %>% filter(year(original_date) == 2012)
 model8_2012 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2012,
+                    data = data_2012,
                     iter = 4000,
                     chains = 4)
 
 pre_data2013 <- pre_data %>% filter(year(original_date) == 2013)
 model8_2013 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2013,
+                    data = data_2013,
                     iter = 4000,
                     chains = 4)
 
 pre_data2014 <- pre_data %>% filter(year(original_date) == 2014)
 model8_2014 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2014,
+                    data = data_2014,
                     iter = 4000,
                     chains = 4)
 
 pre_data2015 <- pre_data %>% filter(year(original_date) == 2015)
 model8_2015 <- stan(file = "stan/model-8.stan",
-                    data = pre_data2015,
+                    data = data_2015,
                     iter = 4000,
                     chains = 4)
 
