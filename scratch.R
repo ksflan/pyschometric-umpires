@@ -240,7 +240,7 @@ plot_data_com %>%
 
 
 ####
-pars <- rstan::extract(model8)
+pars <- rstan::extract(model8_SL)
 
 pred <- apply(pars$predict_theta, FUN = mean, MARGIN = 2)
 predict_grid$pred <- pred
@@ -264,12 +264,20 @@ hist(post_data$strike - (1 / (1 + exp(-post_data$pred))))
 plot(post_data$px, post_data$strike - (1 / (1 + exp(-post_data$pred))))
 
 post_data %>%
-  ggplot(aes(px, pz, z = strike - (1 / (1 + exp(-pred))))) +
+  ggplot(aes(px, pz)) +
   # geom_density2d(lev) +
-  stat_density2d(aes(color = ..level..)) +
+  # geom_hex(aes(z = strike - (1 / (1 + exp(-pred))))) +
+  geom_point(aes(color = strike - (1 / (1 + exp(-pred)))), cex = 0.5) +
+  facet_wrap(~platoon) +
+  coord_equal()
+
+post_data %>%
+  group_by(x = round(px, 1), y = round(pz,1), platoon) %>%
+  summarise(n = n(),
+            error = mean(strike - (1 / (1 + exp(-pred))))) %>%
+  ggplot(aes(x, y)) +
+  geom_contour(aes(z = error)) +
   facet_wrap(~platoon)
-
-
 
 
 
@@ -349,6 +357,87 @@ model8_2015 <- stan(file = "stan/model-8.stan",
                     iter = 4000,
                     chains = 4)
 
+
+
+### Misc.
+
+test_dat <- twenty_umpires_full %>%
+  mutate(px = plate_x,
+         pz = plate_z,
+         call = as.numeric(strike)) %>%
+  filter(#pitch_type == "FF",
+         !is.na(pz),
+         !is.na(px),
+         stand %in% c("R", "L"),
+         p_throws %in% c("R", "L")) %>%
+  group_by(UmpName) %>%
+  mutate(rnum = row_number()) %>%
+  filter(rnum <= 400)
+
+test_dat$umpire_id <- as.numeric(factor(test_dat$UmpName))
+test_dat$period <- 1
+pre_data <- test_dat
+
+model8_SL <- stan(file = "stan/model-8.stan",
+                  data = data,
+                  iter = 2000,
+                  chains = 2)
+
+
+
+
+#### Automated fitting ----
+
+year <- 2010
+
+
+pre_data <- ump_data2 %>%
+  filter(year(original_date) %in% year:year,
+         month(original_date) >= 4,
+         month(original_date) <= 9) %>%
+  # group_by(umpire_id) %>%
+  # mutate(period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1) %>%
+  mutate(test = as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365,
+         #(as.numeric(ymd(original_date)) - min(as.numeric(ymd(original_date)))) %/% 30 + 1) %>%
+         period = (as.numeric(ymd(original_date) - min(ymd(original_date))) %/% 365) + 1,
+         platoon = paste0(stand, "-", p_throws)
+  ) %>%
+  filter(umpire_id %in% umpire_list,
+         period <= 6000) %>%
+  group_by(umpire_id, period) %>%
+  mutate(row_num = row_number()) %>%
+  filter(row_num <= 9999999) %>%
+  ungroup() #%>%
+# filter(period == 3)
+
+predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
+                            y = seq(0, 6, 0.2),
+                            platoon = 1:4)
+
+data <- list(
+  N = nrow(pre_data),
+  U = length(unique(pre_data$umpire_id)),
+  T = max(pre_data$period),
+  # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
+  umpire_index = as.numeric(factor(pre_data$umpire_id)),
+  x = pre_data$px,
+  y = pre_data$pz,
+  s = (pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n,
+  batter_stance = as.numeric(factor(pre_data$platoon)),
+  period = pre_data$period,
+  call = pre_data$strike,
+  predict_N = nrow(predict_grid),
+  predict_x = predict_grid$x,
+  predict_y = predict_grid$y,
+  predict_platoon = predict_grid$platoon
+)
+
+model8 <- stan(file = "stan/model-8.stan",
+               data = data,
+               iter = 4000,
+               chains = 4,
+               include = FALSE,
+               pars = "theta")
 
 
 
