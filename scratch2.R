@@ -40,3 +40,17 @@ data <- list(
   predict_y = predict_grid$y,
   predict_platoon = predict_grid$platoon
 )
+
+
+
+
+model8 <- stan(file = "stan/model-8.stan",
+               data = data,
+               iter = 2000,
+               chains = 2)
+
+
+
+
+
+
