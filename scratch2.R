@@ -12,6 +12,8 @@ pre_data <- full_data %>%
   filter(game_year %in% 2008:2015,
          !is.na(p_throws),
          !is.na(stand),
+         p_throws %in% c("R", "L"),
+         stand %in% c("R", "L"),
          !is.na(plate_x),
          !is.na(plate_z),
          !is.na(balls),
