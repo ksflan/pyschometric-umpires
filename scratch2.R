@@ -24,8 +24,8 @@ pre_data <- full_data %>%
          pitch_type == "FF") %>%
   group_by(UmpName, game_year) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 400,
-         game_year == 2009) %>%
+  filter(row_num <= 1000,
+         game_year == 2014) %>%
   ungroup()
 
 
@@ -36,6 +36,7 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
 data <- list(
   N = nrow(pre_data),
   U = length(unique(pre_data$UmpName)),
+  K = ncol(model.matrix(strike ~ platoon + count, data = pre_data)),
   T = max(pre_data$game_year) - min(pre_data$game_year),
   # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
   umpire_index = as.numeric(factor(pre_data$UmpName)),
@@ -43,8 +44,10 @@ data <- list(
   y = pre_data$plate_z,
   s = (pre_data %>% group_by(UmpName) %>% summarise(n = length(unique(game_year))))$n,
   batter_stance = as.numeric(factor(pre_data$platoon)),
+  count = as.numeric(factor(pre_data$count)),
   period = pre_data$game_year,
   call = pre_data$strike,
+  model_matrix = model.matrix(strike ~ platoon + count, data = pre_data),
   predict_N = nrow(predict_grid),
   predict_x = predict_grid$x,
   predict_y = predict_grid$y,
@@ -54,10 +57,22 @@ data <- list(
 
 
 
-model8 <- stan(file = "stan/model-8.stan",
+model8_v2 <- stan(file = "stan/model-8-2.stan",
                data = data,
                iter = 2000,
-               chains = 4)
+               chains = 2,
+               include = FALSE,
+               pars = "theta")
+
+model3_v2 <- stan(file = "stan/model-3-2.stan",
+                  data = data,
+                  iter = 2000,
+                  chains = 2,
+                  include = FALSE,
+                  pars = "theta",
+                  control = list(
+                    max_treedepth = 25
+                  ))
 
 pars <- extract(model8)
 

@@ -1,14 +1,14 @@
-// Model 7 plus different x0 parameters for batter-handedness
+// This version of model 8 will have a joint prior distribution on the platoon effects
+
+
 
 // Parameters:
 // hierarchical alpha (with handedness)
 // hierarchical beta
 // hierarchical Minkowski
 // hierarchical scale (with handedness)
-// hierarchical x0 (with handedness)
+// hierarchical x0 (with handedness, joint distribution)
 // hierarchical y0
-
-
 
 
 
@@ -53,7 +53,13 @@ parameters {
   vector[4] scale_tilde[U];
   
   vector[4] mu_x0; // 2, for the number of batter handednesses (R and L) // or 4 for the number of distinct platoons
-  vector<lower=0>[4] sigma_x0; // 2, for the number of batter handednesses (R and L)
+  vector[4] x0[U];
+  // vector<lower=0>[4] sigma_x0; // 2, for the number of batter handednesses (R and L)
+  corr_matrix[4] omega;
+  vector<lower=0>[4] tau;
+  
+  
+  
   real mu_y0;
   real<lower=0> sigma_y0;
   
@@ -66,7 +72,7 @@ transformed parameters {
   
   real r_exp[U];
   
-  vector[4] x0[U]; // 2, for the number of batter handednesses (R and L)
+  // vector[4] x0[U];
   real y0[U];
   
   vector<lower=0>[4] scale_exp[U];
@@ -79,7 +85,7 @@ transformed parameters {
     alpha[u] = mu_alpha + to_row_vector(sigma_alpha) * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
     r_exp[u] = exp(mu_r + sigma_r * r_tilde[u]);
-    x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
+    // x0[u] = mu_x0 + to_row_vector(sigma_x0) * x0_tilde[u];
     y0[u] = mu_y0 + sigma_y0 * y0_tilde[u];
     for(i in 1:4)
       scale_exp[u][i] = exp(mu_scale[i] + sigma_scale[i] * scale_tilde[u][i]); // cannot use vector multiplication because of the exp() call
@@ -102,14 +108,19 @@ model {
   mu_x0 ~ normal(0,1);
   mu_y0 ~ normal(2.5,1);
   
+  for(u in 1:U)
+    x0[u] ~ multi_normal(mu_x0, quad_form_diag(omega, tau));
+  tau ~ cauchy(0, 2.5);
+  omega ~ lkj_corr(2);
+  
   mu_r ~ normal(0,10);
   
   mu_scale ~ normal(1,1);
   for(u in 1:U) // does it matter whether this is a univariate normal or multivariate, or if the sampling statement is separate for each platoon parameter?
     scale_tilde[u] ~ normal(0,1);
   
-  for(u in 1:U)
-    x0_tilde[u] ~ normal(0,1);
+  // for(u in 1:U)
+  //   x0_tilde[u] ~ normal(0,1);
   y0_tilde ~ normal(0,1);
   
   r_tilde ~ normal(0,1);
@@ -122,15 +133,21 @@ model {
   
   call ~ bernoulli_logit(theta);
 }
-generated quantities {
-  real predict_theta[predict_N];
-  
-  for(n in 1:predict_N) {
-    predict_theta[n] = inv_logit(
-      mu_beta * ((fabs(predict_x[n] - mu_x0[predict_platoon[n]]) ^ exp(mu_r) + (fabs(predict_y[n] - mu_y0) / exp(mu_scale[predict_platoon[n]])) ^ exp(mu_r)) ^ (1.0 / exp(mu_r)) - mu_alpha[predict_platoon[n]])
-    );
-  }
-}
+// generated quantities {
+//   real predict_theta[predict_N];
+//   
+//   for(n in 1:predict_N) {
+//     predict_theta[n] = inv_logit(
+//       mu_beta * ((fabs(predict_x[n] - mu_x0[predict_platoon[n]]) ^ exp(mu_r) + (fabs(predict_y[n] - mu_y0) / exp(mu_scale[predict_platoon[n]])) ^ exp(mu_r)) ^ (1.0 / exp(mu_r)) - mu_alpha[predict_platoon[n]])
+//     );
+//   }
+// }
+
+
+
+
+
+
 
 
 
