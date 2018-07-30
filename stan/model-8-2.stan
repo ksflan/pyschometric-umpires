@@ -18,12 +18,13 @@ data {
   int<lower=1> predict_N; // number of points to predict
   int<lower=1> U; // num umpires
   int<lower=1,upper=U> umpire_index[N];
+  int K; // number of covariate parameters
   vector[N] x; // x-coord.
   vector[N] y; // y-coord.
   int<lower=1,upper=4> batter_stance[N]; // for each platoon
   int<lower=1,upper=12> count[N]; // ball/strike count
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
-  matrix[N,6] model_matrix;
+  matrix[N,K] model_matrix;
   
   // real predict_x[predict_N];
   // real predict_y[predict_N];
@@ -38,15 +39,15 @@ parameters {
   
   // vector[12] mu_alpha_count;
   // vector<lower=0>[12] sigma_alpha_count;
-  vector[6] mu_alpha;
-  vector<lower=0>[6] sigma_alpha;
+  vector[K] mu_alpha;
+  vector<lower=0>[K] sigma_alpha;
   
   real mu_beta;
   real<lower=0> sigma_beta;
   
   // vector[4] alpha_platoon_tilde[U];
   // vector[12] alpha_count_tilde[U];
-  vector[6] alpha_tilde[U];
+  vector[K] alpha_tilde[U];
   real beta_tilde[U];
   
   // minkowski parameters
@@ -62,12 +63,12 @@ parameters {
   
   // vector[12] mu_lambda_count;
   // vector<lower=0>[12] sigma_lambda_count;
-  vector[6] mu_lambda;
-  vector<lower=0>[6] sigma_lambda;
+  vector[K] mu_lambda;
+  vector<lower=0>[K] sigma_lambda;
   
   // vector[4] lambda_platoon_tilde[U];
   // vector[12] lambda_count_tilde[U];
-  vector[6] lambda_tilde[U];
+  vector[K] lambda_tilde[U];
   
   vector[4] mu_x0; // 2, for the number of batter handednesses (R and L) // or 4 for the number of distinct platoons
   vector<lower=0>[4] sigma_x0; // 2, for the number of batter handednesses (R and L)
@@ -80,7 +81,7 @@ parameters {
 transformed parameters {
   // vector[4] alpha_platoon[U];
   // vector[12] alpha_count[U];
-  vector[6] alpha[U];
+  vector[K] alpha[U];
   
   real beta[U];
   
@@ -93,7 +94,7 @@ transformed parameters {
   // vector<lower=0>[12] lambda_count_exp[U];
   // vector[4] lambda_platoon_exp[U];
   // vector[12] lambda_count_exp[U];
-  vector<lower=0>[6] lambda_exp[U];
+  vector<lower=0>[K] lambda_exp[U];
   
   real theta[N];
   
@@ -111,11 +112,11 @@ transformed parameters {
     //   lambda_platoon_exp[u][i] = mu_lambda_platoon[i] + sigma_lambda_platoon[i] * lambda_platoon_tilde[u][i]; // cannot use vector multiplication because of the exp() call
     // for(i in 1:12)
     //   lambda_count_exp[u][i] = mu_lambda_count[i] + sigma_lambda_count[i] * lambda_count_tilde[u][i]; // cannot use vector multiplication because of the exp() call
-    for(i in 1:6)
+    for(i in 1:K)
       lambda_exp[u][i] = exp(mu_lambda[i] + sigma_lambda[i] * lambda_tilde[u][i]);
   }
   
-  for(n in 1:N)
+  for(n in 1:N) # possibly move the exp() call to here
     theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / (to_row_vector(lambda_exp[umpire_index[n]]) * to_vector(model_matrix[n]))) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - (to_row_vector(alpha[umpire_index[n]]) * to_vector(model_matrix[n])));
 }
 model {
@@ -130,7 +131,10 @@ model {
   // mu_alpha_platoon ~ normal(0,1);
   // mu_alpha_count ~ normal(0,1);
   mu_alpha ~ normal(0,3);
+  mu_alpha[1] ~ normal(17.0 / 24.0,0.5);
+  
   mu_lambda ~ normal(0,3);
+  mu_lambda[1] ~ normal(1,0.5);
   
   mu_x0 ~ normal(0,1);
   mu_y0 ~ normal(2.5,1);
