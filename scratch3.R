@@ -30,7 +30,7 @@ theta_standard_all <- NULL
 for(year in c(2008:2015)) {
   
   s <- readRDS(paste0("mybox-selected/model8-summary-", year, ".rds"))$summary %>% as.data.frame()
-  if(year == 2012) s <- readRDS(paste0("mybox-selected/model8-summary-", year, "-v2.rds"))$summary %>% as.data.frame()
+  if(year %in% c(2010,2012)) s <- readRDS(paste0("mybox-selected/model8-summary-", year, "-v2.rds"))$summary %>% as.data.frame()
   
   s$variable <- rownames(s)
   
@@ -105,16 +105,18 @@ for(year in c(2008:2015)) {
   y0_all <- rbind(y0_all, y0_temp)
   
   # Theta_rep
-  theta_temp <- s %>%
-    filter(grepl("theta", variable),
-           !grepl("mu", variable),
-           !grepl("sigma", variable),
-           !grepl("tilde", variable),
-           !grepl("predict", variable)) %>%
-    mutate(mean_prob = exp(mean) / (exp(mean) + 1)) %>%
-    cbind(year_data)
-  
-  theta_all <- rbind(theta_all, theta_temp)
+  if(year != 2010) {
+    theta_temp <- s %>%
+      filter(grepl("theta", variable),
+             !grepl("mu", variable),
+             !grepl("sigma", variable),
+             !grepl("tilde", variable),
+             !grepl("predict", variable)) %>%
+      mutate(mean_prob = exp(mean) / (exp(mean) + 1)) %>%
+      cbind(year_data)
+    
+    theta_all <- rbind(theta_all, theta_temp)
+  }
   
   # R param
   r_temp <- s %>%
@@ -174,6 +176,14 @@ alpha_all %>%
   geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
   facet_wrap(~umpire_name)
 
+scale_all %>%
+  ggplot(aes(year, mean, color = platoon)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
+  # facet_wrap(~umpire_name)
+facet_wrap(~platoon)
+
 beta_all %>%
   ggplot(aes(year, mean)) +
   geom_line() +
@@ -185,15 +195,15 @@ x0_all %>%
   ggplot(aes(year, mean, color = platoon)) +
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
-  facet_wrap(~umpire_name)
+  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) #+
+  # facet_wrap(~umpire_name)
 
 y0_all %>%
   ggplot(aes(year, mean)) +
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
-  facet_wrap(~umpire_name)
+  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) #+
+  # facet_wrap(~umpire_name)
 
 
 theta_all %>%
@@ -220,7 +230,8 @@ top_all %>%
   ggplot(aes(year, mean, color = variable)) +
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin = `25%`, ymax = `75%`))
+  geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
+  facet_wrap(~variable)
   # theme(legend.position = "none")
 
 theta_standard_all %>%

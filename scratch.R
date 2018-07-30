@@ -240,7 +240,7 @@ plot_data_com %>%
 
 
 ####
-pars <- rstan::extract(model8_SL)
+pars <- rstan::extract(model8)
 
 pred <- apply(pars$predict_theta, FUN = mean, MARGIN = 2)
 predict_grid$pred <- pred
@@ -261,10 +261,10 @@ post_data <- pre_data
 post_data$pred <- pred_actual
 
 hist(post_data$strike - (1 / (1 + exp(-post_data$pred))))
-plot(post_data$px, post_data$strike - (1 / (1 + exp(-post_data$pred))))
+plot(post_data$plate_x, post_data$strike - (1 / (1 + exp(-post_data$pred))))
 
 post_data %>%
-  ggplot(aes(px, pz)) +
+  ggplot(aes(plate_x, plate_z)) +
   # geom_density2d(lev) +
   # geom_hex(aes(z = strike - (1 / (1 + exp(-pred))))) +
   geom_point(aes(color = strike - (1 / (1 + exp(-pred)))), cex = 0.5) +
@@ -272,7 +272,7 @@ post_data %>%
   coord_equal()
 
 post_data %>%
-  group_by(x = round(px, 1), y = round(pz,1), platoon) %>%
+  group_by(x = round(plate_x, 1), y = round(plate_z,1), platoon) %>%
   summarise(n = n(),
             error = mean(strike - (1 / (1 + exp(-pred))))) %>%
   ggplot(aes(x, y)) +
