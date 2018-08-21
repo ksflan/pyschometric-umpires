@@ -11,7 +11,10 @@ s2013 <- readRDS("mybox-selected/model8-summary-2013.rds")$summary %>% as.data.f
 s2014 <- readRDS("mybox-selected/model8-summary-2014.rds")$summary %>% as.data.frame()
 s2015 <- readRDS("mybox-selected/model8-summary-2015.rds")$summary %>% as.data.frame()
 
-full_data <- readRDS("data/final-dataset.rds")
+umpire_bios <- read_csv("data/umpire-bios.csv")
+
+full_data <- readRDS("data/final-dataset.rds") %>%
+  left_join(umpire_bios)
 
 predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
@@ -170,11 +173,12 @@ for(year in c(2008:2015)) {
 }
 
 alpha_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
   ggplot(aes(year, mean, color = platoon)) +
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin = `25%`, ymax = `75%`)) +
-  facet_wrap(~umpire_name)
+  facet_wrap(~paste0(umpire_name, " - Debut: ", umpDebut))
 
 scale_all %>%
   ggplot(aes(year, mean, color = platoon)) +
@@ -245,8 +249,83 @@ theta_standard_all %>%
   facet_grid(platoon ~ year)
 
 
+list_all <- list(
+  alpha_all = alpha_all,
+  beta_all = beta_all,
+  r_all = r_all,
+  x0_all = x0_all,
+  y0_all = y0_all,
+  scale_all = scale_all,
+  theta_all = theta_all,
+  theta_standard_all = theta_standard_all,
+  top_all = top_all
+)
 
-# TODO: add umpire debut years in the for loop above
+saveRDS(list_all, "model-8-all-umpires-parameter-list.rds")
+
+
+
+###
+
+theta_all$ump_age <- theta_all$game_year - theta_all$umpBirthYear
+
+alpha_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  ggplot(aes(umpire_age, mean, color = umpire_name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(aes(mapping = as.character(year)), color = "black", method = "lm", se = FALSE) +
+  theme(legend.position = "none")
+
+r_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  ggplot(aes(umpire_age, mean, color = umpire_name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(aes(mapping = as.character(year)), color = "black", method = "lm", se = FALSE) +
+  theme(legend.position = "none")
+
+x0_all %>%
+  filter(platoon %in% c("R-L", "R-R")) %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  ggplot(aes(umpire_age, mean, color = umpire_name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(aes(mapping = as.character(year)), color = "black", method = "lm", se = FALSE) +
+  theme(legend.position = "none")
+
+y0_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  ggplot(aes(umpire_age, mean, color = umpire_name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(aes(mapping = as.character(year)), color = "black", method = "lm", se = FALSE) +
+  theme(legend.position = "none")
+
+png("journals/umpire-age-beta-parameter.png", width = 20, height = 20, units = "cm", res = 600)
+beta_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  ggplot(aes(umpire_age, mean, color = umpire_name)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, size = 0.4) +
+  geom_smooth(aes(mapping = as.character(year)), color = "black", method = "lm", se = FALSE) +
+  theme(legend.position = "none") +
+  labs(x = "Umpire Age During Season",
+       y = "Beta parameter",
+       title = "Beta parameters by umpire age",
+       subtitle = "There is one color for each umpire.\nThe black lines are regressions of the beta parameter,\npredicted by umpire age, within each season.")
+dev.off()
+
+beta_lm <- beta_all %>%
+  left_join(umpire_bios, by = c("umpire_name" = "UmpName")) %>%
+  mutate(umpire_age = year - umpBirthYear) %>%
+  group_by(year) %>%
+  do(tidy(lm(mean ~ umpire_age, data = .)))
 
 
 

@@ -4,7 +4,7 @@ set.seed(4321)
 
 
 
-full_data <- readRDS("data/final-dataset.rds")
+full_data <- readRDS("data/final-dataset2.rds")
 
 twenty_umpires <- as.character(sample(unique(full_data$UmpName), 20))
 
@@ -19,7 +19,9 @@ pre_data <- full_data %>%
          !is.na(balls),
          !is.na(strikes),
          !is.na(strike)) %>%
-  mutate(platoon = paste0(stand, "-", p_throws)) %>%
+  mutate(platoon = paste0(stand, "-", p_throws),
+         centered_height = height - mean(height),
+         inning_bottom = inning_topbot == "B") %>%
   filter(#UmpName %in% twenty_umpires,
          pitch_type == "FF") %>%
   group_by(UmpName, game_year) %>%
@@ -33,10 +35,13 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
                             platoon = 1:4)
 
+m_matrix <- model.matrix(strike ~ platoon + count + inning_bottom + centered_height,
+                         data = pre_data)
+
 data <- list(
   N = nrow(pre_data),
   U = length(unique(pre_data$UmpName)),
-  K = ncol(model.matrix(strike ~ platoon + count + height, data = pre_data)),
+  K = ncol(m_matrix),
   T = max(pre_data$game_year) - min(pre_data$game_year),
   # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
   umpire_index = as.numeric(factor(pre_data$UmpName)),
@@ -47,7 +52,7 @@ data <- list(
   count = as.numeric(factor(pre_data$count)),
   period = pre_data$game_year,
   call = pre_data$strike,
-  model_matrix = model.matrix(strike ~ platoon + count + height, data = pre_data),
+  model_matrix = m_matrix,
   predict_N = nrow(predict_grid),
   predict_x = predict_grid$x,
   predict_y = predict_grid$y,
@@ -59,14 +64,14 @@ data <- list(
 
 model8_v2 <- stan(file = "stan/model-8-2.stan",
                data = data,
-               iter = 2000,
+               iter = 500,
                chains = 2,
                include = FALSE,
                pars = "theta")
 
 model3_v2 <- stan(file = "stan/model-3-2.stan",
                   data = data,
-                  iter = 2000,
+                  iter = 500,
                   chains = 2,
                   include = FALSE,
                   pars = "theta",
