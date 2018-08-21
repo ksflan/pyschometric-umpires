@@ -38,8 +38,10 @@ transformed parameters {
     alpha[u] = mu_alpha + to_row_vector(sigma_alpha) * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
   }
+  
 }
 model {
+  real alpha_star[N];
   real theta[N];
   
   mu_beta ~ normal(0,10);
@@ -56,8 +58,12 @@ model {
     beta_tilde[u] ~ normal(0,1);
   }
   
+    
   for(n in 1:N)
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0) ^ r_exp + fabs(y[n] - y0) ^ r_exp) ^ (1.0 / r_exp) - (to_row_vector(alpha[umpire_index[n]]) * to_vector(model_matrix[n])));
+    alpha_star[n] = model_matrix[n] * alpha[umpire_index[n]];
+  
+  for(n in 1:N)
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0) ^ r_exp + fabs(y[n] - y0) ^ r_exp) ^ (1.0 / r_exp) - (alpha_star[n]));
   
   call ~ bernoulli_logit(theta);
 }
