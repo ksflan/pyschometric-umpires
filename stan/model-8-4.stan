@@ -68,7 +68,7 @@ parameters {
   
   // vector[4] alpha_platoon_tilde[U];
   // vector[12] alpha_count_tilde[U];
-  vector[K] alpha_tilde[U];
+  // vector[K] alpha_tilde[U];
   real beta_tilde[U];
   
   // minkowski parameters
@@ -121,7 +121,7 @@ transformed parameters {
   
   real theta[N];
   
-  // real alpha_star[N];
+  real alpha_star[N];
   real lambda_star[N];
   real d[N]; // distance calculated from minkowski_distance
   
