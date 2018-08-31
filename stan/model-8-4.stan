@@ -60,6 +60,7 @@ parameters {
   // vector<lower=0>[12] sigma_alpha_count;
   vector[K] mu_alpha;
   row_vector<lower=0>[K] sigma_alpha;
+  vector[K] alpha[U];
   // corr_matrix[K] omega_alpha;
   // vector<lower=0>[K] tau_alpha;
   
@@ -104,7 +105,7 @@ parameters {
 transformed parameters {
   // vector[4] alpha_platoon[U];
   // vector[12] alpha_count[U];
-  vector[K] alpha[U];
+  // vector[K] alpha[U];
   
   real beta[U];
   
