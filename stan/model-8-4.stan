@@ -123,7 +123,7 @@ transformed parameters {
   
   // real alpha_star[N];
   real lambda_star[N];
-  real d[n]; // distance calculated from minkowski_distance
+  real d[N]; // distance calculated from minkowski_distance
   
   // scale_exp = exp(scale);
   
