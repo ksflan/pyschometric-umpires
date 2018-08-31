@@ -189,8 +189,8 @@ model {
   mu_x0 ~ normal(0,1);
   mu_y0 ~ normal(2.5,1);
   
-  alpha ~ normal(mu_alpha, sigma_alpha);
   for(u in 1:U) {
+    alpha[u] ~ normal(mu_alpha, sigma_alpha);
     // alpha_tilde[u] ~ normal(0,1);
     lambda_tilde[u] ~ normal(0,1);
   }
