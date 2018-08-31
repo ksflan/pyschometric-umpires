@@ -155,9 +155,9 @@ transformed parameters {
     d[n] = minkowski_distance(x0[umpire_index[n],batter_stance[n]], y0[umpire_index[n]], x[n], y[n], lambda_star[n], exp(r_exp[umpire_index[n]]));
     
     // theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / (lambda_star[n])) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - (alpha_star[n]));
+    theta[n] = psychometric_function(beta[umpire_index[n]], alpha_star[n], d[n]);
   }
   
-  theta = psychometric_function(beta[umpire_index], alpha_star, d);
 }
 model {
   
