@@ -109,7 +109,7 @@ transformed parameters {
   
   real beta[U];
   
-  real<lower=0> r_exp[U];
+  real r_exp[U];
   
   vector[4] x0[U]; // xxxxxxxxx4, for the number of platoons
   real y0[U];
