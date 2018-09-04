@@ -22,11 +22,12 @@ pre_data <- full_data %>%
   mutate(platoon = paste0(stand, "-", p_throws),
          centered_height = height - mean(height),
          inning_bottom = inning_topbot == "B") %>%
-  filter(#UmpName %in% twenty_umpires,
-         pitch_type == "FF") %>%
+  filter(pitch_type == "FF",
+         UmpName %in% twenty_umpires
+         ) %>%
   group_by(UmpName, game_year) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 200,
+  filter(row_num <= 500,
          game_year == 2014) %>%
   ungroup()
 
@@ -35,7 +36,7 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
                             platoon = 1:4)
 
-m_matrix <- model.matrix(strike ~ platoon + inning_bottom + centered_height, # + count
+m_matrix <- model.matrix(strike ~ platoon + inning_bottom, # + centered_height, # + count
                          data = pre_data)
 
 data <- list(
@@ -62,12 +63,15 @@ data <- list(
 
 
 
-model8_v2 <- stan(file = "stan/model-8-2.stan",
+model8_v4 <- stan(file = "stan/model-8-4.stan",
                data = data,
-               iter = 500,
+               iter = 1000,
                chains = 2,
                include = FALSE,
-               pars = "theta")
+               pars = c("theta", "d"),
+               control = list(
+                 adapt_delta = 0.80
+               ))
 
 model3_v2 <- stan(file = "stan/model-3-2.stan",
                   data = data,
