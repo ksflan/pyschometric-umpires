@@ -178,7 +178,10 @@ model {
   sigma_beta ~ cauchy(0,5);
   sigma_r ~ cauchy(0,5);
   
-  mu_beta ~ normal(0,10);
+  sigma_y0 ~ cauchy(0,5);
+  sigma_x0 ~ cauchy(0,5);
+  
+  mu_beta ~ normal(-5,5);
   // mu_alpha_platoon ~ normal(0,1);
   // mu_alpha_count ~ normal(0,1);
   mu_alpha ~ normal(0,3);
