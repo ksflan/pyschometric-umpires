@@ -21,7 +21,7 @@ pre_data <- full_data %>%
          !is.na(strike)) %>%
   mutate(platoon = paste0(stand, "-", p_throws),
          centered_height = height - mean(height),
-         inning_bottom = inning_topbot == "B") %>%
+         inning_bottom = inning_topbot == "Bot") %>%
   filter(pitch_type == "FF",
          UmpName %in% twenty_umpires
          ) %>%
