@@ -60,7 +60,7 @@ parameters {
   // vector<lower=0>[12] sigma_alpha_count;
   vector[K] mu_alpha;
   row_vector<lower=0>[K] sigma_alpha;
-  vector[K] alpha[U];
+  // vector[K] alpha[U];
   // corr_matrix[K] omega_alpha;
   // vector<lower=0>[K] tau_alpha;
   
@@ -69,7 +69,7 @@ parameters {
   
   // vector[4] alpha_platoon_tilde[U];
   // vector[12] alpha_count_tilde[U];
-  // vector[K] alpha_tilde[U];
+  vector[K] alpha_tilde[U];
   real beta_tilde[U];
   
   // minkowski parameters
@@ -105,7 +105,7 @@ parameters {
 transformed parameters {
   // vector[4] alpha_platoon[U];
   // vector[12] alpha_count[U];
-  // vector[K] alpha[U];
+  vector[K] alpha[U];
   
   real beta[U];
   
@@ -134,7 +134,7 @@ transformed parameters {
   for (u in 1:U) {
     // alpha_platoon[u] = mu_alpha_platoon + to_row_vector(sigma_alpha_platoon) * alpha_platoon_tilde[u];
     // alpha_count[u] = mu_alpha_count + to_row_vector(sigma_alpha_count) * alpha_count_tilde[u];
-    // alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
+    alpha[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
     beta[u] = mu_beta + sigma_beta * beta_tilde[u];
     r_exp[u] = mu_r + sigma_r * r_tilde[u];
     x0[u] = mu_x0 + sigma_x0 * x0_tilde[u];
@@ -194,8 +194,8 @@ model {
   mu_y0 ~ normal(2.5,1);
   
   for(u in 1:U) {
-    alpha[u] ~ normal(mu_alpha, sigma_alpha);
-    // alpha_tilde[u] ~ normal(0,1);
+    // alpha[u] ~ normal(mu_alpha, sigma_alpha);
+    alpha_tilde[u] ~ normal(0,1);
     lambda_tilde[u] ~ normal(0,1);
   }
   
