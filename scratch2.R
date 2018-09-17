@@ -36,8 +36,9 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
                             platoon = 1:4)
 
-m_matrix <- model.matrix(strike ~ platoon + inning_bottom, # + centered_height, # + count
+m_matrix <- model.matrix(strike ~ platoon + count + inning_bottom, # + centered_height, # + count
                          data = pre_data)
+
 
 data <- list(
   N = nrow(pre_data),
@@ -63,15 +64,16 @@ data <- list(
 
 
 
-model8_v4 <- stan(file = "stan/model-8-4.stan",
+model8_v5 <- stan(file = "stan/model-8-5.stan",
                data = data,
-               iter = 1000,
+               iter = 100,
                chains = 2,
                include = FALSE,
                pars = c("theta", "d"),
                control = list(
                  adapt_delta = 0.80
                ))
+
 
 model3_v2 <- stan(file = "stan/model-3-2.stan",
                   data = data,
