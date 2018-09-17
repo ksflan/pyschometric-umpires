@@ -147,7 +147,7 @@ transformed parameters {
   
   for(n in 1:N) { // possibly move the exp() call to here
     alpha_star[n] = model_matrix[n] * alpha[umpire_index[n]];
-    lambda_star[n] = model_matrix[n] * exp(lambda[umpire_index[n]]);
+    lambda_star[n] = exp(model_matrix[n] * lambda[umpire_index[n]]);
     
     d[n] = minkowski_distance(x0[umpire_index[n],batter_stance[n]], y0[umpire_index[n]], x[n], y[n], lambda_star[n], exp(r[umpire_index[n]]));
     
@@ -180,11 +180,11 @@ model {
   mu_beta ~ normal(-5,5);
   // mu_alpha_platoon ~ normal(0,1);
   // mu_alpha_count ~ normal(0,1);
-  mu_alpha ~ normal(0,3);
+  mu_alpha ~ normal(0,1);
   mu_alpha[1] ~ normal(17.0 / 24.0,0.5);
   
   mu_lambda ~ normal(0,3);
-  mu_lambda[1] ~ normal(1,0.5);
+  mu_lambda[1] ~ normal(0,0.5);
   
   mu_x0 ~ normal(0,1);
   mu_y0 ~ normal(2.5,1);
@@ -195,7 +195,7 @@ model {
   //   lambda_tilde[u] ~ normal(0,1);
   // }
   
-  mu_r ~ normal(0,5);
+  mu_r ~ normal(1.5,0.5);
   
   // mu_lambda_count ~ normal(0,10);
   // mu_lambda_platoon ~ normal(0,10);
