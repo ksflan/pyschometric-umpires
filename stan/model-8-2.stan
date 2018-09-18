@@ -98,6 +98,9 @@ transformed parameters {
   
   real theta[N];
   
+  real alpha_star[N];
+  real lambda_star[N];
+  
   // scale_exp = exp(scale);
   
   for (u in 1:U) {
@@ -116,8 +119,13 @@ transformed parameters {
       lambda_exp[u][i] = exp(mu_lambda[i] + sigma_lambda[i] * lambda_tilde[u][i]);
   }
   
-  for(n in 1:N) // possibly move the exp() call to here
-    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / (to_row_vector(lambda_exp[umpire_index[n]]) * to_vector(model_matrix[n]))) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - (model_matrix[n] * alpha[umpire_index[n]]));
+  
+  for(n in 1:N) { // possibly move the exp() call to here
+    alpha_star[n] = model_matrix[n] * alpha[umpire_index[n]];
+    lambda_star[n] = model_matrix[n] * lambda_exp[umpire_index[n]];
+    
+    theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / (lambda_star[n])) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - (alpha_star[n]));
+  }
 }
 model {
   

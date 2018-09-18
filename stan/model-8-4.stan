@@ -187,8 +187,8 @@ model {
   mu_alpha ~ normal(0,3);
   mu_alpha[1] ~ normal(17.0 / 24.0,0.5);
   
-  mu_lambda ~ normal(0,3);
-  mu_lambda[1] ~ normal(1,0.5);
+  mu_lambda ~ normal(0,0.5);
+  mu_lambda[1] ~ normal(0,0.5);
   
   mu_x0 ~ normal(0,1);
   mu_y0 ~ normal(2.5,1);
@@ -199,7 +199,7 @@ model {
     lambda_tilde[u] ~ normal(0,1);
   }
   
-  mu_r ~ normal(0,5);
+  mu_r ~ normal(1.5,0.5);
   
   // mu_lambda_count ~ normal(0,10);
   // mu_lambda_platoon ~ normal(0,10);

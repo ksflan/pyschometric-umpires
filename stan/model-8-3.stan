@@ -93,6 +93,8 @@ transformed parameters {
   
   for(n in 1:N)
     theta[n] = beta[umpire_index[n]] * ((fabs(x[n] - x0[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]] + (fabs(y[n] - y0[umpire_index[n]]) / scale_exp[umpire_index[n],batter_stance[n]]) ^ r_exp[umpire_index[n]]) ^ (1.0 / r_exp[umpire_index[n]]) - alpha[umpire_index[n],batter_stance[n]]);
+    
+  // theta = psychometric_function(beta[umpire_index], alpha_star, d);
 }
 model {
   

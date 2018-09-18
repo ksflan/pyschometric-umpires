@@ -27,7 +27,7 @@ pre_data <- full_data %>%
          ) %>%
   group_by(UmpName, game_year) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 500,
+  filter(row_num <= 50,
          game_year == 2014) %>%
   ungroup()
 
@@ -66,13 +66,23 @@ data <- list(
 
 model8_v5 <- stan(file = "stan/model-8-5.stan",
                data = data,
-               iter = 100,
+               iter = 1000,
                chains = 2,
                include = FALSE,
                pars = c("theta", "d"),
                control = list(
-                 adapt_delta = 0.80
+                 adapt_delta = 0.80, max_treedepth = 13
                ))
+
+model8_v4 <- stan(file = "stan/model-8-4.stan",
+                  data = data,
+                  iter = 1000,
+                  chains = 2,
+                  include = FALSE,
+                  pars = c("theta", "d"),
+                  control = list(
+                    adapt_delta = 0.80, max_treedepth = 13
+                  ))
 
 
 model3_v2 <- stan(file = "stan/model-3-2.stan",
