@@ -79,7 +79,7 @@ model8_v6 <- stan(file = "stan/model-8-6.stan",
                   iter = 1000,
                   chains = 2,
                   include = FALSE,
-                  pars = c("theta", "d"),
+                  pars = c("theta", "d", "alpha_star", "lambda_star"),
                   control = list(
                     adapt_delta = 0.80, max_treedepth = 10
                   ))
