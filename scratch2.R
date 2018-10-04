@@ -65,14 +65,24 @@ data <- list(
 
 
 model8_v5 <- stan(file = "stan/model-8-5.stan",
-               data = data,
-               iter = 1000,
-               chains = 2,
-               include = FALSE,
-               pars = c("theta", "d"),
-               control = list(
-                 adapt_delta = 0.80, max_treedepth = 13
-               ))
+                  data = data,
+                  iter = 1000,
+                  chains = 2,
+                  include = FALSE,
+                  pars = c("theta", "d"),
+                  control = list(
+                    adapt_delta = 0.80, max_treedepth = 13
+                  ))
+
+model8_v6 <- stan(file = "stan/model-8-6.stan",
+                  data = data,
+                  iter = 1000,
+                  chains = 2,
+                  include = FALSE,
+                  pars = c("theta", "d"),
+                  control = list(
+                    adapt_delta = 0.80, max_treedepth = 10
+                  ))
 
 model8_v4 <- stan(file = "stan/model-8-4.stan",
                   data = data,
