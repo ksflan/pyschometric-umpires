@@ -101,7 +101,7 @@ transformed parameters {
   
   for(n in 1:N) { // possibly move the exp() call to here
     alpha_star[n] = model_matrix[n] * alpha + alpha_umpire[umpire_index[n]];
-    lambda_star[n] = model_matrix[n] * exp(lambda_exp) + lambda_umpire[umpire_index[n]];
+    lambda_star[n] = exp(model_matrix[n] * lambda_exp + lambda_umpire[umpire_index[n]]);
     
     d[n] = minkowski_distance(x0[umpire_index[n],batter_stance[n]], y0[umpire_index[n]], x[n], y[n], lambda_star[n], exp(r_exp[umpire_index[n]]));
     
@@ -153,7 +153,11 @@ model {
   call ~ bernoulli_logit(theta);
 }
 generated quantities {
-  matrix height;
+  real height[U];
+  
+  for(u in 1:U)
+    height[u] = (alpha[1] + alpha_umpire[u]) / exp(lambda_exp[1] + lambda_umpire[u]);
+  
 //   real predict_theta[predict_N];
 //   
 //   for(n in 1:predict_N) {

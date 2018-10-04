@@ -151,7 +151,7 @@ transformed parameters {
   
   for(n in 1:N) { // possibly move the exp() call to here
     alpha_star[n] = model_matrix[n] * alpha[umpire_index[n]];
-    lambda_star[n] = model_matrix[n] * exp(lambda_exp[umpire_index[n]]);
+    lambda_star[n] = exp(model_matrix[n] * lambda_exp[umpire_index[n]]);
     
     d[n] = minkowski_distance(x0[umpire_index[n],batter_stance[n]], y0[umpire_index[n]], x[n], y[n], lambda_star[n], exp(r_exp[umpire_index[n]]));
     
