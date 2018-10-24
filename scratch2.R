@@ -64,46 +64,56 @@ data <- list(
 
 
 
-model8_v5 <- stan(file = "stan/model-8-5.stan",
-                  data = data,
-                  iter = 1000,
-                  chains = 2,
-                  include = FALSE,
-                  pars = c("theta", "d"),
-                  control = list(
-                    adapt_delta = 0.80, max_treedepth = 13
-                  ))
+# model8_v5 <- stan(file = "stan/model-8-5.stan",
+#                   data = data,
+#                   iter = 1000,
+#                   chains = 2,
+#                   include = FALSE,
+#                   pars = c("theta", "d"),
+#                   control = list(
+#                     adapt_delta = 0.80, max_treedepth = 13
+#                   ))
 
-model8_v6 <- stan(file = "stan/model-8-6.stan",
+# model8_v6 <- stan(file = "stan/model-8-6.stan",
+#                   data = data,
+#                   iter = 1000,
+#                   chains = 2,
+#                   include = FALSE,
+#                   pars = c("theta", "d", "alpha_star", "lambda_star"),
+#                   control = list(
+#                     adapt_delta = 0.80, max_treedepth = 10
+#                   ))
+
+model8_v7 <- stan(file = "stan/model-8-7.stan",
                   data = data,
                   iter = 1000,
-                  chains = 2,
+                  chains = 4,
                   include = FALSE,
                   pars = c("theta", "d", "alpha_star", "lambda_star"),
                   control = list(
                     adapt_delta = 0.80, max_treedepth = 10
                   ))
 
-model8_v4 <- stan(file = "stan/model-8-4.stan",
-                  data = data,
-                  iter = 1000,
-                  chains = 2,
-                  include = FALSE,
-                  pars = c("theta", "d"),
-                  control = list(
-                    adapt_delta = 0.80, max_treedepth = 13
-                  ))
+# model8_v4 <- stan(file = "stan/model-8-4.stan",
+#                   data = data,
+#                   iter = 1000,
+#                   chains = 2,
+#                   include = FALSE,
+#                   pars = c("theta", "d"),
+#                   control = list(
+#                     adapt_delta = 0.80, max_treedepth = 13
+#                   ))
 
 
-model3_v2 <- stan(file = "stan/model-3-2.stan",
-                  data = data,
-                  iter = 500,
-                  chains = 2,
-                  include = FALSE,
-                  pars = "theta",
-                  control = list(
-                    max_treedepth = 10
-                  ))
+# model3_v2 <- stan(file = "stan/model-3-2.stan",
+#                   data = data,
+#                   iter = 500,
+#                   chains = 2,
+#                   include = FALSE,
+#                   pars = "theta",
+#                   control = list(
+#                     max_treedepth = 10
+#                   ))
 
 pars <- extract(model8)
 
