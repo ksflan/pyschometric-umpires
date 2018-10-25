@@ -24,7 +24,7 @@ data {
   int<lower=1> N; // num obs
   int<lower=1> predict_N; // number of points to predict
   int<lower=1> U; // num umpires
-  int<lower=1,upper=U> umpire_index[N];
+  // int<lower=1,upper=U> umpire_index[N];
   int K; // number of covariate parameters
   vector[N] x; // x-coord.
   vector[N] y; // y-coord.
@@ -32,6 +32,7 @@ data {
   int<lower=1,upper=12> count[N]; // ball/strike count
   int<lower=0,upper=1> call[N]; // 0 = ball; 1 = strike
   matrix[N,K] model_matrix;
+  matrix[N,U-1] umpire_matrix; // indicator variables for umpire effects
   
   // real predict_x[predict_N];
   // real predict_y[predict_N];
@@ -40,22 +41,22 @@ data {
 parameters {
   // real mu_beta;
   real<lower=0> sigma_beta;
-  real beta_tilde[U];
+  vector[U-1] beta_tilde;
   vector[K] beta;
   
   // real mu_alpha;
   real<lower=0> sigma_alpha;
   vector[K] alpha;
-  real alpha_tilde[U];
+  vector[U-1] alpha_tilde;
   
   // real mu_lambda;
   real<lower=0> sigma_lambda;
   vector[K] lambda;
-  real lambda_tilde[U];
+  vector[U-1] lambda_tilde;
   
   // real mu_r;
   real<lower=0> sigma_r;
-  real r_tilde[U];
+  vector[U-1] r_tilde;
   vector[K] r;
   
   // real mu_x0;
@@ -63,8 +64,8 @@ parameters {
   // real mu_y0;
   real<lower=0> sigma_y0;
   
-  real x0_tilde[U];
-  real y0_tilde[U];
+  vector[U-1] x0_tilde;
+  vector[U-1] y0_tilde;
   
   vector[K] x0;
   vector[K] y0;
@@ -72,31 +73,31 @@ parameters {
   
 }
 transformed parameters {
-  real alpha_umpire[U];
-  real lambda_umpire[U];
+  vector[U-1] alpha_umpire;
+  vector[U-1] lambda_umpire;
   
-  real beta_umpire[U];
+  vector[U-1] beta_umpire;
   
-  real r_umpire[U];
+  vector[U-1] r_umpire;
   
-  real x0_umpire[U];
-  real y0_umpire[U];
+  vector[U-1] x0_umpire;
+  vector[U-1] y0_umpire;
   
   // vector[4] x0[U];
   // real y0[U];
   
   real theta[N];
   
-  real alpha_star[N];
-  real lambda_star[N];
-  real x0_star[N];
-  real y0_star[N];
-  real r_star[N];
-  real beta_star[N];
+  vector[N] alpha_star;
+  real<lower=0> lambda_star[N];
+  vector[N] x0_star;
+  vector[N] y0_star;
+  real<lower=0> r_star[N];
+  vector[N] beta_star;
   real d[N]; // distance calculated from minkowski_distance
   
 
-  for (u in 1:U) {
+  for (u in 1:(U-1)) {
     // alpha_umpire[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
     // lambda_umpire[u] = mu_lambda + sigma_lambda * lambda_tilde[u];
     // beta_umpire[u] = mu_beta + sigma_beta * beta_tilde[u];
@@ -110,15 +111,19 @@ transformed parameters {
     x0_umpire[u] = sigma_x0 * x0_tilde[u];
     y0_umpire[u] = sigma_y0 * y0_tilde[u];
   }
-  
+
+  alpha_star = model_matrix * alpha + umpire_matrix * alpha_umpire;
+  x0_star = model_matrix * x0 + umpire_matrix * x0_umpire;
+  y0_star = model_matrix * y0 + umpire_matrix * y0_umpire;
+  beta_star = model_matrix * beta + umpire_matrix * beta_umpire;  
   
   for(n in 1:N) { // possibly move the exp() call to here
-    alpha_star[n] = model_matrix[n] * alpha + alpha_umpire[umpire_index[n]];
-    lambda_star[n] = exp(model_matrix[n] * lambda + lambda_umpire[umpire_index[n]]);
-    x0_star[n] = model_matrix[n] * x0 + x0_umpire[umpire_index[n]];
-    y0_star[n] = model_matrix[n] * y0 + y0_umpire[umpire_index[n]];
-    beta_star[n] = model_matrix[n] * beta + beta_umpire[umpire_index[n]];
-    r_star[n] = exp(model_matrix[n] * r + r_umpire[umpire_index[n]]);
+    // alpha_star[n] = model_matrix[n] * alpha + umpire_matrix[n] * alpha_umpire;
+    // x0_star[n] = model_matrix[n] * x0 + umpire_matrix[n] * x0_umpire;
+    // y0_star[n] = model_matrix[n] * y0 + umpire_matrix[n] * y0_umpire;
+    // beta_star[n] = model_matrix[n] * beta + umpire_matrix[n] * beta_umpire;
+    lambda_star[n] = exp(model_matrix[n] * lambda + umpire_matrix[n] * lambda_umpire);
+    r_star[n] = exp(model_matrix[n] * r + umpire_matrix[n] * r_umpire);
     
     d[n] = minkowski_distance(x0_star[n], y0_star[n], x[n], y[n], lambda_star[n], r_star[n]);
     
@@ -175,11 +180,18 @@ model {
   call ~ bernoulli_logit(theta);
 }
 generated quantities {
-  real height[U];
+  real height[U-1];
   // vector[K] r_exp;
   
-  for(u in 1:U)
+  for(u in 1:(U-1))
     height[u] = (alpha[1] + alpha_umpire[u]) / exp(lambda[1] + lambda_umpire[u]);
+    
+    
+    
+    // Create calculated umpire measurements. Now that there is a reference umpire, this must be done separately.
+    
+    
+    
     
   // for(k in 1:K)
   //   r_exp[k] = exp(r[k]);

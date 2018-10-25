@@ -36,14 +36,14 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
                             y = seq(0, 6, 0.2),
                             platoon = 1:4)
 
-m_matrix <- model.matrix(strike ~ platoon + count + inning_bottom, # + centered_height, # + count
+m_matrix <- model.matrix(strike ~ platoon + count + inning_bottom + UmpName, # + centered_height, # + count
                          data = pre_data)
 
 
 data <- list(
   N = nrow(pre_data),
   U = length(unique(pre_data$UmpName)),
-  K = ncol(m_matrix),
+  K = 16,
   T = max(pre_data$game_year) - min(pre_data$game_year),
   # T = sum((pre_data %>% group_by(umpire_id) %>% summarise(n = length(unique(period))))$n),
   umpire_index = as.numeric(factor(pre_data$UmpName)),
@@ -54,7 +54,8 @@ data <- list(
   count = as.numeric(factor(pre_data$count)),
   period = pre_data$game_year,
   call = pre_data$strike,
-  model_matrix = m_matrix,
+  model_matrix = m_matrix[,1:16],
+  umpire_matrix = m_matrix[,-16:-1],
   predict_N = nrow(predict_grid),
   predict_x = predict_grid$x,
   predict_y = predict_grid$y,
