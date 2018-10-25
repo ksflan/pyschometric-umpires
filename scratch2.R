@@ -39,7 +39,6 @@ predict_grid <- expand.grid(x = seq(-2, 2, 0.2),
 m_matrix <- model.matrix(strike ~ platoon + count + inning_bottom + UmpName, # + centered_height, # + count
                          data = pre_data)
 
-
 data <- list(
   N = nrow(pre_data),
   U = length(unique(pre_data$UmpName)),

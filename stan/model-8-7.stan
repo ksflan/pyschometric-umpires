@@ -112,13 +112,13 @@ transformed parameters {
     y0_umpire[u] = sigma_y0 * y0_tilde[u];
   }
 
-  alpha_star = model_matrix * alpha + umpire_matrix * alpha_umpire;
+  // alpha_star = model_matrix * alpha + umpire_matrix * alpha_umpire;
   x0_star = model_matrix * x0 + umpire_matrix * x0_umpire;
   y0_star = model_matrix * y0 + umpire_matrix * y0_umpire;
   beta_star = model_matrix * beta + umpire_matrix * beta_umpire;  
   
   for(n in 1:N) { // possibly move the exp() call to here
-    // alpha_star[n] = model_matrix[n] * alpha + umpire_matrix[n] * alpha_umpire;
+    alpha_star[n] = exp(model_matrix[n] * alpha + umpire_matrix[n] * alpha_umpire);
     // x0_star[n] = model_matrix[n] * x0 + umpire_matrix[n] * x0_umpire;
     // y0_star[n] = model_matrix[n] * y0 + umpire_matrix[n] * y0_umpire;
     // beta_star[n] = model_matrix[n] * beta + umpire_matrix[n] * beta_umpire;
@@ -153,7 +153,8 @@ model {
   // mu_alpha ~ normal(0,1);
   sigma_alpha ~ cauchy(0,3);
   // alpha ~ normal(0,1);
-  alpha[1] ~ normal(1,1);
+  // alpha[1] ~ normal(1,1);
+  alpha[1] ~ normal(0,1);
   
   // mu_lambda ~ normal(0,1);
   sigma_lambda ~ cauchy(0,3);
