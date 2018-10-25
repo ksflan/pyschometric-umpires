@@ -27,7 +27,7 @@ pre_data <- full_data %>%
          ) %>%
   group_by(UmpName, game_year) %>%
   mutate(row_num = row_number()) %>%
-  filter(row_num <= 50,
+  filter(row_num <= 150,
          game_year == 2014) %>%
   ungroup()
 
