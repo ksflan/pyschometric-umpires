@@ -70,18 +70,20 @@ parameters {
   vector[K] x0;
   vector[K] y0;
   
-  
-}
-transformed parameters {
   vector[U-1] alpha_umpire;
   vector[U-1] lambda_umpire;
-  
   vector[U-1] beta_umpire;
-  
   vector[U-1] r_umpire;
-  
   vector[U-1] x0_umpire;
   vector[U-1] y0_umpire;
+}
+transformed parameters {
+  // vector[U-1] alpha_umpire;
+  // vector[U-1] lambda_umpire;
+  // vector[U-1] beta_umpire;
+  // vector[U-1] r_umpire;
+  // vector[U-1] x0_umpire;
+  // vector[U-1] y0_umpire;
   
   // vector[4] x0[U];
   // real y0[U];
@@ -97,20 +99,20 @@ transformed parameters {
   real d[N]; // distance calculated from minkowski_distance
   
 
-  for (u in 1:(U-1)) {
-    // alpha_umpire[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
-    // lambda_umpire[u] = mu_lambda + sigma_lambda * lambda_tilde[u];
-    // beta_umpire[u] = mu_beta + sigma_beta * beta_tilde[u];
-    // r_umpire[u] = mu_r + sigma_r * r_tilde[u];
-    // x0_umpire[u] = mu_x0 + sigma_x0 * x0_tilde[u];
-    // y0_umpire[u] = mu_y0 + sigma_y0 * y0_tilde[u];
-    alpha_umpire[u] = sigma_alpha * alpha_tilde[u];
-    lambda_umpire[u] = sigma_lambda * lambda_tilde[u];
-    beta_umpire[u] = sigma_beta * beta_tilde[u];
-    r_umpire[u] = sigma_r * r_tilde[u];
-    x0_umpire[u] = sigma_x0 * x0_tilde[u];
-    y0_umpire[u] = sigma_y0 * y0_tilde[u];
-  }
+  // for (u in 1:(U-1)) {
+  //   // alpha_umpire[u] = mu_alpha + sigma_alpha * alpha_tilde[u];
+  //   // lambda_umpire[u] = mu_lambda + sigma_lambda * lambda_tilde[u];
+  //   // beta_umpire[u] = mu_beta + sigma_beta * beta_tilde[u];
+  //   // r_umpire[u] = mu_r + sigma_r * r_tilde[u];
+  //   // x0_umpire[u] = mu_x0 + sigma_x0 * x0_tilde[u];
+  //   // y0_umpire[u] = mu_y0 + sigma_y0 * y0_tilde[u];
+  //   alpha_umpire[u] = sigma_alpha * alpha_tilde[u];
+  //   lambda_umpire[u] = sigma_lambda * lambda_tilde[u];
+  //   beta_umpire[u] = sigma_beta * beta_tilde[u];
+  //   r_umpire[u] = sigma_r * r_tilde[u];
+  //   x0_umpire[u] = sigma_x0 * x0_tilde[u];
+  //   y0_umpire[u] = sigma_y0 * y0_tilde[u];
+  // }
 
   alpha_star = model_matrix * alpha + umpire_matrix * alpha_umpire;
   x0_star = model_matrix * x0 + umpire_matrix * x0_umpire;
@@ -171,12 +173,18 @@ model {
   // mu_y0 ~ normal(0,1);
   sigma_y0 ~ cauchy(0,3);
   
-  alpha_tilde ~ normal(0,1);
-  lambda_tilde ~ normal(0,1);
-  x0_tilde ~ normal(0,1);
-  y0_tilde ~ normal(0,1);
-  r_tilde ~ normal(0,1);
-  beta_tilde ~ normal(0,1);
+  // alpha_tilde ~ normal(0,1);
+  // lambda_tilde ~ normal(0,1);
+  // x0_tilde ~ normal(0,1);
+  // y0_tilde ~ normal(0,1);
+  // r_tilde ~ normal(0,1);
+  // beta_tilde ~ normal(0,1);
+  alpha_umpire ~ normal(0,sigma_alpha);
+  lambda_umpire ~ normal(0,sigma_lambda);
+  x0_umpire ~ normal(0,sigma_x0);
+  y0_umpire ~ normal(0,sigma_y0);
+  r_umpire ~ normal(0,sigma_r);
+  beta_umpire ~ normal(0,sigma_beta);
   
   call ~ bernoulli_logit(theta);
 }
