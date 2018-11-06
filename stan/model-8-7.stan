@@ -69,10 +69,10 @@ parameters {
   vector[U-1] x0_tilde;
   vector[U-1] y0_tilde;
   
-  vector[K] x0;
-  vector[K] y0;
-  // real x0;
-  // real y0;
+  // vector[K] x0;
+  // vector[K] y0;
+  real x0;
+  real y0;
   
   // vector[U-1] alpha_umpire;
   // vector[U-1] lambda_umpire;
@@ -129,10 +129,10 @@ transformed parameters {
     // real d[N]; // distance calculated from minkowski_distance
     
     alpha_star = model_matrix * alpha + umpire_matrix * alpha_umpire;
-    x0_star = model_matrix * x0 + umpire_matrix * x0_umpire;
-    y0_star = model_matrix * y0 + umpire_matrix * y0_umpire;
+    // x0_star = model_matrix * x0 + umpire_matrix * x0_umpire;
+    // y0_star = model_matrix * y0 + umpire_matrix * y0_umpire;
     
-    // beta_star = model_matrix * beta;// + umpire_matrix * beta_umpire;  
+    beta_star = model_matrix * beta + umpire_matrix * beta_umpire;
     
     for(n in 1:N) { // possibly move the exp() call to here
       // alpha_star[n] = exp(model_matrix[n] * alpha + umpire_matrix[n] * alpha_umpire);
@@ -142,10 +142,10 @@ transformed parameters {
       // lambda_star[n] = exp(model_matrix[n] * lambda + umpire_matrix[n] * lambda_umpire);
       // r_star[n] = exp(model_matrix[n] * r + umpire_matrix[n] * r_umpire);
       
-      // x0_star[n] = x0;
-      // y0_star[n] = y0;
+      x0_star[n] = x0;
+      y0_star[n] = y0;
       
-      beta_star[n] = -1.0 * exp(model_matrix[n] * beta + umpire_matrix[n] * beta_umpire);
+      // beta_star[n] = -1.0 * exp(model_matrix[n] * beta + umpire_matrix[n] * beta_umpire);
       lambda_star[n] = exp(model_matrix[n] * lambda + umpire_matrix[n] * lambda_umpire);
       r_star[n] = exp(model_matrix[n] * r + umpire_matrix[n] * r_umpire);
       
@@ -164,8 +164,8 @@ model {
     r[k] ~ normal(0,1);
     alpha[k] ~ normal(0,1);
     lambda[k] ~ normal(0,1);
-    x0[k] ~ normal(0,1);
-    y0[k] ~ normal(0,1);
+    // x0[k] ~ normal(0,1);
+    // y0[k] ~ normal(0,1);
   }
   
   beta[1] ~ normal(0,10);
@@ -186,10 +186,10 @@ model {
   
   // x0 ~ normal(0,1);
   // y0 ~ normal(0,1);
-  x0[1] ~ normal(0,1);
-  y0[1] ~ normal(2.5,1);
-  // x0 ~ normal(0,1);
-  // y0 ~ normal(2.5,1);
+  // x0[1] ~ normal(0,1);
+  // y0[1] ~ normal(2.5,1);
+  x0 ~ normal(0,1);
+  y0 ~ normal(2.5,1);
   
   sigma_beta ~ cauchy(0,3);
   sigma_r ~ cauchy(0,3);
